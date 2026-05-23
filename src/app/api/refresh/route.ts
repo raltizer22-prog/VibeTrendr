@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSupabaseEnvStatus } from "../../../lib/supabase";
-import { refreshSignals } from "../../../lib/signals";
+import { refreshSignals } from "@/lib/signals";
+import { getSupabaseEnvStatus } from "@/lib/supabase";
 
 export async function POST() {
   const cachedSignals = await refreshSignals();

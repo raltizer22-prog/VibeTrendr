@@ -1,4 +1,7 @@
 import { getSignals, stats } from "@/lib/signals";
+import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 function formatRefreshedAt(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -8,7 +11,11 @@ function formatRefreshedAt(value: string) {
 }
 
 export default async function Home() {
-  const { signals, refreshedAt } = await getSignals();
+  const [{ signals, refreshedAt }, recentSnapshots, supabaseStatus] = await Promise.all([
+    getSignals(),
+    fetchRecentSignalSnapshots(6),
+    Promise.resolve(getSupabaseEnvStatus()),
+  ]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -24,6 +31,9 @@ export default async function Home() {
             </a>
             <a className="transition hover:text-white" href="#signals">
               Signals
+            </a>
+            <a className="transition hover:text-white" href="#snapshots">
+              Snapshots
             </a>
             <a className="transition hover:text-white" href="#queue">
               Idea queue
@@ -93,6 +103,59 @@ export default async function Home() {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="snapshots" className="mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-12">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Recent snapshots</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                Latest rows from Supabase, shown read-only for quick review.
+              </p>
+            </div>
+            <div className="text-sm text-zinc-400">
+              {supabaseStatus.ready ? "Connected" : "Not connected"}
+            </div>
+          </div>
+
+          {!supabaseStatus.ready ? (
+            <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 px-4 py-3 text-sm text-zinc-300">
+              Supabase env vars are missing, so the snapshot panel is showing a safe fallback.
+            </div>
+          ) : recentSnapshots.length === 0 ? (
+            <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 px-4 py-3 text-sm text-zinc-300">
+              No snapshots yet.
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-3">
+              {recentSnapshots.map((snapshot) => (
+                <article
+                  key={`${snapshot.refreshed_at}-${snapshot.source}-${snapshot.title}`}
+                  className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4"
+                >
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-3xl">
+                      <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                        {snapshot.source}
+                      </div>
+                      <h3 className="mt-1 text-lg font-semibold text-white">{snapshot.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-zinc-300">{snapshot.description ?? "No description provided."}</p>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap gap-2 text-xs text-zinc-300">
+                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.category}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">Score {snapshot.score}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.velocity ?? "—"}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.horizon ?? "—"}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{formatRefreshedAt(snapshot.refreshed_at)}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,43 +1,4 @@
-const signals = [
-  {
-    category: "AI tooling",
-    title: "Agent memory overlays are getting hot",
-    description:
-      "More builders want persistent context across sessions without hand-holding every prompt.",
-    velocity: "High",
-    horizon: "Now",
-  },
-  {
-    category: "Creator economy",
-    title: "Tiny launch products are outperforming bloated suites",
-    description:
-      "Simple, opinionated tools are winning because they ship faster and feel easier to buy.",
-    velocity: "Rising",
-    horizon: "This week",
-  },
-  {
-    category: "Developer tools",
-    title: "Local-first workflows are back",
-    description:
-      "People want faster iteration loops, less cloud nonsense, and more offline control.",
-    velocity: "Hot",
-    horizon: "Right now",
-  },
-  {
-    category: "Trend signal",
-    title: "Vibe coding is turning into a category",
-    description:
-      "The phrase is showing up everywhere. That usually means a product layer is forming.",
-    velocity: "Very high",
-    horizon: "Today",
-  },
-];
-
-const stats = [
-  { label: "Trending now", value: "42" },
-  { label: "Ideas queued", value: "18" },
-  { label: "High-confidence signals", value: "9" },
-];
+import { signals, stats } from "@/lib/signals";
 
 export default function Home() {
   return (
@@ -110,9 +71,12 @@ export default function Home() {
                   <p className="mt-2 text-sm leading-6 text-zinc-300">{signal.description}</p>
                 </div>
 
-                <div className="flex shrink-0 gap-3 text-xs text-zinc-300">
+                <div className="flex shrink-0 flex-wrap gap-3 text-xs text-zinc-300">
                   <span className="rounded-full border border-white/10 px-3 py-1">{signal.velocity}</span>
                   <span className="rounded-full border border-white/10 px-3 py-1">{signal.horizon}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.source}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">Score {signal.score}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.updatedAt}</span>
                 </div>
               </div>
             </article>

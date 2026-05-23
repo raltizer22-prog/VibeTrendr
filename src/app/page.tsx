@@ -16,6 +16,21 @@ export default function Home() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
+          <a
+            href="#signals"
+            className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
+          >
+            View signals
+          </a>
+          <a
+            href="#plan"
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-zinc-50 transition hover:bg-white/5"
+          >
+            See the plan
+          </a>
+        </div>
+
+        <div className="mt-12 flex flex-wrap gap-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
             <div className="text-sm text-zinc-400">Mode</div>
             <div className="mt-1 text-base font-medium">Trend discovery</div>
@@ -35,6 +50,42 @@ export default function Home() {
           <span className="rounded-full border border-white/10 px-4 py-2">Trend signals</span>
           <span className="rounded-full border border-white/10 px-4 py-2">Launch planning</span>
           <span className="rounded-full border border-white/10 px-4 py-2">Fast iteration</span>
+        </div>
+      </section>
+
+      <section id="signals" className="border-t border-white/10 bg-zinc-900/60 px-6 py-20 sm:px-10 lg:px-12">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
+          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm text-zinc-400">Signal 01</div>
+            <h2 className="mt-2 text-xl font-semibold">What people are asking for</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Capture emerging requests before they become boring features.
+            </p>
+          </article>
+          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm text-zinc-400">Signal 02</div>
+            <h2 className="mt-2 text-xl font-semibold">Where attention is moving</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Watch tools, niches, and communities that are starting to accelerate.
+            </p>
+          </article>
+          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm text-zinc-400">Signal 03</div>
+            <h2 className="mt-2 text-xl font-semibold">What to build next</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Turn noisy trend data into a clean build queue.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="plan" className="px-6 py-20 sm:px-10 lg:px-12">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/5 p-8">
+          <h2 className="text-2xl font-semibold">Launch plan</h2>
+          <p className="mt-3 max-w-2xl text-zinc-300">
+            Keep the first release focused: find trends, shortlist ideas, and
+            move fast from signal to shipping.
+          </p>
         </div>
       </section>
     </main>

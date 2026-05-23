@@ -1,6 +1,8 @@
-import { signals, stats } from "@/lib/signals";
+import { getSignals, stats } from "@/lib/signals";
 
-export default function Home() {
+export default async function Home() {
+  const signals = await getSignals();
+
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
       <header className="border-b border-white/10 bg-zinc-950/80 backdrop-blur">

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { getSignals, stats } from "@/lib/signals";
 import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
 
@@ -8,6 +9,29 @@ function formatRefreshedAt(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getCardClassName(clickable: boolean) {
+  return [
+    "rounded-3xl border border-white/10 bg-white/5 p-5 transition",
+    clickable ? "cursor-pointer hover:border-emerald-400/30 hover:bg-white/[0.07]" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function CardShell({ href, children }: { href?: string | null; children: ReactNode }) {
+  const className = getCardClassName(Boolean(href));
+
+  if (href) {
+    return (
+      <a className={className} href={href} target="_blank" rel="noreferrer">
+        {children}
+      </a>
+    );
+  }
+
+  return <article className={className}>{children}</article>;
 }
 
 export default async function Home() {
@@ -82,10 +106,7 @@ export default async function Home() {
 
         <div className="grid gap-4">
           {signals.map((signal) => (
-            <article
-              key={signal.title}
-              className="rounded-3xl border border-white/10 bg-white/5 p-5 transition hover:border-emerald-400/30 hover:bg-white/[0.07]"
-            >
+            <CardShell key={signal.title} href={signal.sourceUrl}>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <div className="text-sm text-emerald-300">{signal.category}</div>
@@ -101,7 +122,7 @@ export default async function Home() {
                   <span className="rounded-full border border-white/10 px-3 py-1">{signal.updatedAt}</span>
                 </div>
               </div>
-            </article>
+            </CardShell>
           ))}
         </div>
       </section>
@@ -131,10 +152,7 @@ export default async function Home() {
           ) : (
             <div className="mt-5 grid gap-3">
               {recentSnapshots.map((snapshot) => (
-                <article
-                  key={`${snapshot.refreshed_at}-${snapshot.source}-${snapshot.title}`}
-                  className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4"
-                >
+                <CardShell key={`${snapshot.refreshed_at}-${snapshot.source}-${snapshot.title}`} href={snapshot.source_url}>
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-3xl">
                       <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">
@@ -152,7 +170,7 @@ export default async function Home() {
                       <span className="rounded-full border border-white/10 px-3 py-1">{formatRefreshedAt(snapshot.refreshed_at)}</span>
                     </div>
                   </div>
-                </article>
+                </CardShell>
               ))}
             </div>
           )}

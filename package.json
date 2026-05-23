@@ -6,11 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "codegraph:init": "codegraph init -i",
+    "codegraph:status": "codegraph status",
+    "codegraph:sync": "codegraph sync"
   },
   "dependencies": {
-    "react": "19.0.0-rc-65a56d0e-20241020",
-    "react-dom": "19.0.0-rc-65a56d0e-20241020",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "next": "15.0.7"
   },
   "devDependencies": {
@@ -22,5 +25,9 @@
     "tailwindcss": "^3.4.1",
     "eslint": "^8",
     "eslint-config-next": "15.0.0"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

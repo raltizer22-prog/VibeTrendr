@@ -1,91 +1,157 @@
+const signals = [
+  {
+    category: "AI tooling",
+    title: "Agent memory overlays are getting hot",
+    description:
+      "More builders want persistent context across sessions without hand-holding every prompt.",
+    velocity: "High",
+    horizon: "Now",
+  },
+  {
+    category: "Creator economy",
+    title: "Tiny launch products are outperforming bloated suites",
+    description:
+      "Simple, opinionated tools are winning because they ship faster and feel easier to buy.",
+    velocity: "Rising",
+    horizon: "This week",
+  },
+  {
+    category: "Developer tools",
+    title: "Local-first workflows are back",
+    description:
+      "People want faster iteration loops, less cloud nonsense, and more offline control.",
+    velocity: "Hot",
+    horizon: "Right now",
+  },
+  {
+    category: "Trend signal",
+    title: "Vibe coding is turning into a category",
+    description:
+      "The phrase is showing up everywhere. That usually means a product layer is forming.",
+    velocity: "Very high",
+    horizon: "Today",
+  },
+];
+
+const stats = [
+  { label: "Trending now", value: "42" },
+  { label: "Ideas queued", value: "18" },
+  { label: "High-confidence signals", value: "9" },
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-12">
-        <div className="mb-6 inline-flex w-fit rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-sm text-emerald-300">
-          VibeTrendr v2
-        </div>
-
-        <h1 className="max-w-3xl text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
-          Find trends early. Build faster. Ship before the room catches up.
-        </h1>
-
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300 sm:text-xl">
-          VibeTrendr scans the signal, filters the noise, and helps you spot
-          what’s worth building next.
-        </p>
-
-        <div className="mt-10 flex flex-wrap gap-4">
-          <a
-            href="#signals"
-            className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
-          >
-            View signals
-          </a>
-          <a
-            href="#plan"
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-zinc-50 transition hover:bg-white/5"
-          >
-            See the plan
-          </a>
-        </div>
-
-        <div className="mt-12 flex flex-wrap gap-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-            <div className="text-sm text-zinc-400">Mode</div>
-            <div className="mt-1 text-base font-medium">Trend discovery</div>
+      <header className="border-b border-white/10 bg-zinc-950/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-10 lg:px-12">
+          <div>
+            <div className="text-lg font-semibold tracking-tight">VibeTrendr v2</div>
+            <div className="text-xs text-zinc-400">Trend discovery for vibe coders</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-            <div className="text-sm text-zinc-400">Stack</div>
-            <div className="mt-1 text-base font-medium">Next.js + Vercel</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-            <div className="text-sm text-zinc-400">Status</div>
-            <div className="mt-1 text-base font-medium text-emerald-300">Deploy ready</div>
-          </div>
+          <nav className="flex items-center gap-6 text-sm text-zinc-300">
+            <a className="transition hover:text-white" href="#dashboard">
+              Dashboard
+            </a>
+            <a className="transition hover:text-white" href="#signals">
+              Signals
+            </a>
+            <a className="transition hover:text-white" href="#queue">
+              Idea queue
+            </a>
+          </nav>
         </div>
+      </header>
 
-        <div className="mt-12 flex flex-wrap gap-4 text-sm text-zinc-400">
-          <span className="rounded-full border border-white/10 px-4 py-2">AI idea generation</span>
-          <span className="rounded-full border border-white/10 px-4 py-2">Trend signals</span>
-          <span className="rounded-full border border-white/10 px-4 py-2">Launch planning</span>
-          <span className="rounded-full border border-white/10 px-4 py-2">Fast iteration</span>
+      <section id="dashboard" className="mx-auto max-w-6xl px-6 py-10 sm:px-10 lg:px-12">
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-400/10 via-white/5 to-transparent p-8 lg:p-10">
+          <div className="mb-6 inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">
+            Live signal board
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1.4fr_0.9fr] lg:items-end">
+            <div>
+              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+                Spot trends early, sort the noise, and ship the right thing first.
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
+                VibeTrendr watches the market, surfaces what’s heating up, and keeps the
+                idea queue moving without turning into another bloated dashboard.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {stats.map((stat) => (
+                <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+                  <div className="text-2xl font-semibold text-white">{stat.value}</div>
+                  <div className="mt-1 text-xs text-zinc-400">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="signals" className="border-t border-white/10 bg-zinc-900/60 px-6 py-20 sm:px-10 lg:px-12">
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
-          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-zinc-400">Signal 01</div>
-            <h2 className="mt-2 text-xl font-semibold">What people are asking for</h2>
-            <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Capture emerging requests before they become boring features.
-            </p>
-          </article>
-          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-zinc-400">Signal 02</div>
-            <h2 className="mt-2 text-xl font-semibold">Where attention is moving</h2>
-            <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Watch tools, niches, and communities that are starting to accelerate.
-            </p>
-          </article>
-          <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-sm text-zinc-400">Signal 03</div>
-            <h2 className="mt-2 text-xl font-semibold">What to build next</h2>
-            <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Turn noisy trend data into a clean build queue.
-            </p>
-          </article>
+      <section id="signals" className="mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-12">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Signals feed</h2>
+          <div className="text-sm text-zinc-400">Updated moments ago</div>
+        </div>
+
+        <div className="grid gap-4">
+          {signals.map((signal) => (
+            <article
+              key={signal.title}
+              className="rounded-3xl border border-white/10 bg-white/5 p-5 transition hover:border-emerald-400/30 hover:bg-white/[0.07]"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-3xl">
+                  <div className="text-sm text-emerald-300">{signal.category}</div>
+                  <h3 className="mt-1 text-xl font-semibold">{signal.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">{signal.description}</p>
+                </div>
+
+                <div className="flex shrink-0 gap-3 text-xs text-zinc-300">
+                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.velocity}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.horizon}</span>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section id="plan" className="px-6 py-20 sm:px-10 lg:px-12">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/5 p-8">
-          <h2 className="text-2xl font-semibold">Launch plan</h2>
-          <p className="mt-3 max-w-2xl text-zinc-300">
-            Keep the first release focused: find trends, shortlist ideas, and
-            move fast from signal to shipping.
-          </p>
+      <section id="queue" className="mx-auto max-w-6xl px-6 py-10 sm:px-10 lg:px-12">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-2xl font-semibold">Idea queue</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
+              Signals should turn into buildable ideas. This is where the shortlist lives.
+            </p>
+            <div className="mt-5 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+                Build an AI trend brief generator
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+                Add source scoring and confidence weights
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+                Save ideas to Supabase later
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
+            <h2 className="text-2xl font-semibold">Next move</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              Connect real data sources, score them, then let users turn a strong signal into a project idea.
+            </p>
+            <a
+              href="#signals"
+              className="mt-6 inline-flex rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
+            >
+              Review signals
+            </a>
+          </div>
         </div>
       </section>
     </main>

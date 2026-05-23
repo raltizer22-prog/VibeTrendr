@@ -7,4 +7,5 @@ export type Signal = {
   source: string;
   score: number;
   updatedAt: string;
+  sourceUrl?: string;
 };

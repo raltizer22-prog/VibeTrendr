@@ -122,6 +122,7 @@ function toSignal(post: RedditPost, source: RedditSourceConfig): Signal {
     source: "Reddit",
     score,
     updatedAt: formatAge(post.created_utc),
+    sourceUrl: post.permalink ? `https://www.reddit.com${post.permalink}` : undefined,
   };
 }
 

@@ -124,6 +124,7 @@ function toSignal(repo: GitHubRepo, search: GitHubSearchConfig): Signal {
     source: "GitHub",
     score,
     updatedAt: formatAge(repo.pushed_at ?? repo.created_at),
+    sourceUrl: repo.html_url,
   };
 }
 

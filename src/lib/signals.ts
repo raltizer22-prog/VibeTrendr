@@ -3,6 +3,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import { fetchGitHubSignals } from "./sources/github";
 import { fetchProductHuntSignals } from "./sources/product-hunt";
 import { fetchRedditSignals } from "./sources/reddit";
+import { getSupabaseEnvStatus, persistSignalSnapshots } from "./supabase";
 
 const SOURCE_WEIGHTS: Record<string, number> = {
   Reddit: 1.08,
@@ -23,7 +24,15 @@ export async function getSignals(): Promise<CachedSignals> {
 
 export async function refreshSignals(): Promise<CachedSignals> {
   revalidateTag(SIGNALS_CACHE_TAG);
-  return getLiveSignals();
+
+  const cachedSignals = await getLiveSignals();
+  const supabaseStatus = getSupabaseEnvStatus();
+
+  if (supabaseStatus.ready) {
+    void persistSignalSnapshots(cachedSignals.signals, cachedSignals.refreshedAt);
+  }
+
+  return cachedSignals;
 }
 
 export function rankSignals(signals: Signal[]): Signal[] {

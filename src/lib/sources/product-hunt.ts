@@ -180,6 +180,7 @@ function toSignal(post: ProductHuntPost, search: ProductHuntSearchConfig): Signa
     source: "Product Hunt",
     score,
     updatedAt: formatAge(post.featuredAt ?? post.createdAt),
+    sourceUrl: post.url ?? undefined,
   };
 }
 

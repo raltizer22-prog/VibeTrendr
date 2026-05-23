@@ -56,7 +56,10 @@ export default async function Home() {
 
       <section id="signals" className="mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-12">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Signals feed</h2>
+          <div>
+            <h2 className="text-2xl font-semibold">Signals feed</h2>
+            <div className="text-sm text-zinc-400">Ranked across live sources</div>
+          </div>
           <div className="text-sm text-zinc-400">Updated moments ago</div>
         </div>
 

@@ -1,7 +1,14 @@
 import { getSignals, stats } from "@/lib/signals";
 
+function formatRefreshedAt(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export default async function Home() {
-  const signals = await getSignals();
+  const { signals, refreshedAt } = await getSignals();
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -60,7 +67,7 @@ export default async function Home() {
             <h2 className="text-2xl font-semibold">Signals feed</h2>
             <div className="text-sm text-zinc-400">Ranked across live sources</div>
           </div>
-          <div className="text-sm text-zinc-400">Updated moments ago</div>
+          <div className="text-sm text-zinc-400">Last refreshed {formatRefreshedAt(refreshedAt)}</div>
         </div>
 
         <div className="grid gap-4">

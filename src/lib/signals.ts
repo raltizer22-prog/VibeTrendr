@@ -12,11 +12,16 @@ const SOURCE_WEIGHTS: Record<string, number> = {
 const SIGNALS_CACHE_TAG = "vibetrendr-signals";
 const SIGNALS_CACHE_TTL_SECONDS = 300;
 
-export async function getSignals(): Promise<Signal[]> {
+export type CachedSignals = {
+  signals: Signal[];
+  refreshedAt: string;
+};
+
+export async function getSignals(): Promise<CachedSignals> {
   return getCachedSignals();
 }
 
-export async function refreshSignals(): Promise<Signal[]> {
+export async function refreshSignals(): Promise<CachedSignals> {
   revalidateTag(SIGNALS_CACHE_TAG);
   return getLiveSignals();
 }
@@ -53,14 +58,17 @@ function computeRankScore(signal: Signal): number {
   return signal.score * sourceWeight + getRecencyWeight(signal.updatedAt);
 }
 
-async function getLiveSignals(): Promise<Signal[]> {
+async function getLiveSignals(): Promise<CachedSignals> {
   const [redditSignals, productHuntSignals, githubSignals] = await Promise.all([
     fetchRedditSignals(),
     fetchProductHuntSignals(),
     fetchGitHubSignals(),
   ]);
 
-  return rankSignals([...redditSignals, ...productHuntSignals, ...githubSignals]);
+  return {
+    signals: rankSignals([...redditSignals, ...productHuntSignals, ...githubSignals]),
+    refreshedAt: new Date().toISOString(),
+  };
 }
 
 const getCachedSignals = unstable_cache(getLiveSignals, [SIGNALS_CACHE_TAG], {

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { UnlockAccessButton } from "@/components/unlock-access-button";
 import { isPaidUser } from "@/lib/access";
 
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28E4gy3LAfUPd2h3hB14406";
+
 export const metadata = {
   title: "Pricing | VibeTrendr",
   description: "Unlock the paid trend intelligence workspace.",
@@ -99,9 +101,17 @@ export default async function PricingPage({
         <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-2xl font-semibold">Ready to continue?</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
-            This demo unlocks the access cookie and sends you into the paid experience.
+            Go straight to checkout, then unlock the full paid experience.
           </p>
-          <div className="mt-5">
+          <div className="mt-5 flex flex-wrap gap-3">
+            <a
+              href={STRIPE_PAYMENT_LINK}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
+            >
+              Continue to checkout
+            </a>
             <UnlockAccessButton nextPath={nextPath} />
           </div>
         </div>

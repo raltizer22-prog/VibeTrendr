@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { UnlockAccessButton } from "@/components/unlock-access-button";
 import { isPaidUser } from "@/lib/access";
 
 const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28E4gy3LAfUPd2h3hB14406";
@@ -23,14 +22,8 @@ const plans = [
   },
 ];
 
-export default async function PricingPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ next?: string }>;
-}) {
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+export default async function PricingPage() {
   const isPaid = await isPaidUser();
-  const nextPath = isPaid ? "/app" : resolvedSearchParams?.next?.startsWith("/") ? resolvedSearchParams.next : "/app";
   const appHref = isPaid ? "/app" : "/pricing";
 
   return (
@@ -101,7 +94,10 @@ export default async function PricingPage({
         <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-2xl font-semibold">Ready to continue?</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
-            Go straight to checkout, then unlock the full paid experience.
+            Go straight to checkout, then return here to unlock the full paid experience.
+          </p>
+          <p className="mt-2 text-xs text-zinc-400">
+            After checkout, you’ll be sent back into the app automatically.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <a
@@ -112,7 +108,6 @@ export default async function PricingPage({
             >
               Continue to checkout
             </a>
-            <UnlockAccessButton nextPath={nextPath} />
           </div>
         </div>
       </section>

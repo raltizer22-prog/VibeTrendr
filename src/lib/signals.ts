@@ -36,7 +36,7 @@ export async function refreshSignals(): Promise<CachedSignals> {
 }
 
 export function rankSignals(signals: Signal[]): Signal[] {
-  return [...signals].sort((a, b) => {
+  const ranked = [...signals].sort((a, b) => {
     const aScore = computeRankScore(a);
     const bScore = computeRankScore(b);
 
@@ -60,11 +60,39 @@ export function rankSignals(signals: Signal[]): Signal[] {
 
     return a.title.localeCompare(b.title);
   });
+
+  return filterRepetitiveSignals(ranked);
 }
 
 function computeRankScore(signal: Signal): number {
   const sourceWeight = SOURCE_WEIGHTS[signal.source] ?? 1;
   return signal.score * sourceWeight + getRecencyWeight(signal.updatedAt);
+}
+
+function filterRepetitiveSignals(signals: Signal[]): Signal[] {
+  const seenCategories = new Map<string, number>();
+  const seenTitles = new Set<string>();
+
+  return signals.filter((signal) => {
+    const titleKey = normalizeKey(signal.title);
+    if (seenTitles.has(titleKey)) {
+      return false;
+    }
+
+    const categoryKey = normalizeKey(signal.category);
+    const count = seenCategories.get(categoryKey) ?? 0;
+    if (count >= 2) {
+      return false;
+    }
+
+    seenTitles.add(titleKey);
+    seenCategories.set(categoryKey, count + 1);
+    return true;
+  });
+}
+
+function normalizeKey(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 async function getLiveSignals(): Promise<CachedSignals> {

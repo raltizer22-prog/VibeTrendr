@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getSignals, stats } from "@/lib/signals";
+import type { Signal } from "@/lib/types";
 import type { SignalSnapshotRow } from "@/lib/supabase";
 import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
 
@@ -37,6 +38,19 @@ function formatRelativeAge(value: string) {
   return `${days}d ago`;
 }
 
+function isVeryRecent(value: string, maxHours = 12) {
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+
+  return Date.now() - parsed <= maxHours * 60 * 60 * 1000;
+}
+
+function normalizeKey(value: string) {
+  return value.trim().toLowerCase();
+}
+
 function getCardClassName(clickable: boolean) {
   return [
     "rounded-3xl border border-white/10 bg-white/5 p-5 transition",
@@ -71,6 +85,14 @@ type SnapshotGroup = {
   count: number;
 };
 
+type SignalGroup = {
+  categoryKey: string;
+  category: string;
+  primary: Signal;
+  signals: Signal[];
+  freshnessCue: string | null;
+};
+
 function buildSnapshotGroups(snapshots: SignalSnapshotRow[]): SnapshotGroup[] {
   const groups = new Map<string, SnapshotGroup>();
 
@@ -84,6 +106,30 @@ function buildSnapshotGroups(snapshots: SignalSnapshotRow[]): SnapshotGroup[] {
     }
 
     groups.set(key, { row: snapshot, count: 1 });
+  }
+
+  return [...groups.values()];
+}
+
+function buildSignalGroups(signals: Signal[], snapshots: SignalSnapshotRow[]): SignalGroup[] {
+  const groups = new Map<string, SignalGroup>();
+
+  for (const signal of signals) {
+    const categoryKey = normalizeKey(signal.category);
+    const existing = groups.get(categoryKey);
+
+    if (existing) {
+      existing.signals.push(signal);
+      continue;
+    }
+
+    groups.set(categoryKey, {
+      categoryKey,
+      category: signal.category,
+      primary: signal,
+      signals: [signal],
+      freshnessCue: getFreshnessCueFromSnapshots(signal, snapshots),
+    });
   }
 
   return [...groups.values()];
@@ -106,9 +152,13 @@ function getFreshnessCueFromSnapshots(
   }
 
   const latest = matches[0];
+  if (!isVeryRecent(latest.refreshed_at, 12)) {
+    return null;
+  }
+
   return matches.length > 1
-    ? `Seen ${matches.length}x · ${formatRelativeAge(latest.refreshed_at)}`
-    : `Seen · ${formatRelativeAge(latest.refreshed_at)}`;
+    ? `Fresh · ${matches.length}x · ${formatRelativeAge(latest.refreshed_at)}`
+    : `Fresh · ${formatRelativeAge(latest.refreshed_at)}`;
 }
 
 export default async function Home() {
@@ -119,6 +169,7 @@ export default async function Home() {
   ]);
 
   const snapshotGroups = buildSnapshotGroups(recentSnapshots);
+  const signalGroups = buildSignalGroups(signals, recentSnapshots);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -184,34 +235,33 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-4">
-          {signals.map((signal) => {
-            const freshnessCue = getFreshnessCueFromSnapshots(signal, recentSnapshots);
-
-            return (
-              <CardShell key={signal.title} href={signal.sourceUrl}>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="max-w-3xl">
-                    <div className="text-sm text-emerald-300">{signal.category}</div>
-                    <h3 className="mt-1 text-xl font-semibold">{signal.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-zinc-300">{signal.description}</p>
-                  </div>
-
-                  <div className="flex shrink-0 flex-wrap gap-3 text-xs text-zinc-300">
-                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.velocity}</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.horizon}</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.source}</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1">Score {signal.score}</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.updatedAt}</span>
-                    {freshnessCue ? (
-                      <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
-                        {freshnessCue}
-                      </span>
-                    ) : null}
-                  </div>
+          {signalGroups.map(({ categoryKey, category, primary, signals: groupedSignals, freshnessCue }) => (
+            <CardShell key={categoryKey} href={primary.sourceUrl}>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-3xl">
+                  <div className="text-sm text-emerald-300">{category}</div>
+                  <h3 className="mt-1 text-xl font-semibold">{primary.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">{primary.description}</p>
                 </div>
-              </CardShell>
-            );
-          })}
+
+                <div className="flex shrink-0 flex-wrap gap-3 text-xs text-zinc-300">
+                  <span className="rounded-full border border-white/10 px-3 py-1">{primary.velocity}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{primary.horizon}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{primary.source}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">Score {primary.score}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1">{primary.updatedAt}</span>
+                  {groupedSignals.length > 1 ? (
+                    <span className="rounded-full border border-white/10 px-3 py-1">{groupedSignals.length} related</span>
+                  ) : null}
+                  {freshnessCue ? (
+                    <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
+                      {freshnessCue}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </CardShell>
+          ))}
         </div>
       </section>
 

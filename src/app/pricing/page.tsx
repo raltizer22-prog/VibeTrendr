@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UnlockAccessButton } from "@/components/unlock-access-button";
+import { isPaidUser } from "@/lib/access";
 
 export const metadata = {
   title: "Pricing | VibeTrendr",
@@ -26,7 +27,9 @@ export default async function PricingPage({
   searchParams?: Promise<{ next?: string }>;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const nextPath = resolvedSearchParams?.next?.startsWith("/") ? resolvedSearchParams.next : "/app";
+  const isPaid = await isPaidUser();
+  const nextPath = isPaid ? "/app" : resolvedSearchParams?.next?.startsWith("/") ? resolvedSearchParams.next : "/app";
+  const appHref = isPaid ? "/app" : "/pricing";
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -40,7 +43,7 @@ export default async function PricingPage({
             <Link className="transition hover:text-white" href="/">
               Landing
             </Link>
-            <Link className="transition hover:text-white" href="/app">
+            <Link className="transition hover:text-white" href={appHref}>
               App
             </Link>
           </nav>

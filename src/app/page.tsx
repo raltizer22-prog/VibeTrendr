@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isPaidUser } from "@/lib/access";
 
 export const metadata = {
   title: "VibeTrendr | Trend discovery for vibe coders",
@@ -26,7 +27,9 @@ const features = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const appHref = (await isPaidUser()) ? "/app" : "/pricing";
+
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
       <header className="border-b border-white/10">
@@ -39,7 +42,7 @@ export default function Home() {
             <Link className="transition hover:text-white" href="/pricing">
               Pricing
             </Link>
-            <Link className="transition hover:text-white" href="/app">
+            <Link className="transition hover:text-white" href={appHref}>
               App
             </Link>
           </nav>

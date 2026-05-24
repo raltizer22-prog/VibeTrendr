@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import { getSignals, stats } from "@/lib/signals";
 import type { Signal } from "@/lib/types";
 import type { SignalSnapshotRow } from "@/lib/supabase";
-import { generateIdeaVariants, generateTopicIdeaVariants } from "@/lib/idea-generator";
+import { generateIdeaVariants } from "@/lib/idea-generator";
 import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
+import { TopicIdeaGenerator } from "@/components/topic-idea-generator";
 
 export const dynamic = "force-dynamic";
 
@@ -174,12 +175,6 @@ export default async function Home() {
   const signalGroups = buildSignalGroups(signals, recentSnapshots);
   const topSignal = signalGroups[0];
 
-  const topicSeed = {
-    topic: "fitness",
-    audience: "solo founders and creators",
-    style: "buildable",
-  };
-  const topicIdeas = generateTopicIdeaVariants(topicSeed);
   const signalIdeas = topSignal
     ? generateIdeaVariants({
         title: topSignal.primary.title,
@@ -274,61 +269,16 @@ export default async function Home() {
       </section>
 
       <section id="ideas" className="mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-12">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Vibe code helper</div>
-              <h2 className="mt-1 text-2xl font-semibold">Turn a topic into build ideas</h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Try a niche like <span className="text-zinc-200">fitness</span>, <span className="text-zinc-200">trading</span>, or <span className="text-zinc-200">creator tools</span>.
-              </p>
-            </div>
-            <div className="text-sm text-zinc-400">Example topic: {topicSeed.topic}</div>
-          </div>
+        <TopicIdeaGenerator />
 
-          <div className="mt-5 grid gap-3 lg:grid-cols-3">
-            {topicIdeas.map((idea) => (
-              <article key={idea.name} className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4">
-                <div className="text-lg font-semibold text-white">{idea.name}</div>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">{idea.pitch}</p>
-                <div className="mt-4 space-y-3 text-sm text-zinc-300">
-                  <div>
-                    <span className="text-zinc-500">Target:</span> {idea.targetUser}
-                  </div>
-                  <div>
-                    <span className="text-zinc-500">Why now:</span> {idea.whyNow}
-                  </div>
-                  <div>
-                    <span className="text-zinc-500">Stack:</span> {idea.stack}
-                  </div>
-                  <div>
-                    <span className="text-zinc-500">Launch angle:</span> {idea.launchAngle}
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">MVP</div>
-                  <ul className="space-y-1 text-sm text-zinc-300">
-                    {idea.mvp.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
+        {signalIdeas.length > 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-4">
+            <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Trending from signals</div>
+            <p className="mt-2 text-sm text-zinc-300">
+              These are being generated from the current top live signal so you can see what’s hot right now.
+            </p>
           </div>
-
-          {signalIdeas.length > 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-4">
-              <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Trending from signals</div>
-              <p className="mt-2 text-sm text-zinc-300">
-                These are being generated from the current top live signal so you can see what’s hot right now.
-              </p>
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </section>
 
       <section id="signals" className="mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-12">

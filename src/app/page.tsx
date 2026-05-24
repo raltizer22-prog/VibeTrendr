@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getSignals, stats } from "@/lib/signals";
+import type { SignalSnapshotRow } from "@/lib/supabase";
 import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,31 @@ function formatRefreshedAt(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatRelativeAge(value: string) {
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return "recently";
+  }
+
+  const ageMs = Date.now() - parsed;
+  if (ageMs <= 0) {
+    return "just now";
+  }
+
+  const minutes = Math.floor(ageMs / 60000);
+  if (minutes < 60) {
+    return `${Math.max(1, minutes)}m ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 function getCardClassName(clickable: boolean) {
@@ -34,12 +60,65 @@ function CardShell({ href, children }: { href?: string | null; children: ReactNo
   return <article className={className}>{children}</article>;
 }
 
+function buildSnapshotKey(row: Pick<SignalSnapshotRow, "source" | "category" | "title" | "source_url">) {
+  return [row.source, row.category, row.title, row.source_url ?? ""]
+    .map((part) => part.trim().toLowerCase())
+    .join("|");
+}
+
+type SnapshotGroup = {
+  row: SignalSnapshotRow;
+  count: number;
+};
+
+function buildSnapshotGroups(snapshots: SignalSnapshotRow[]): SnapshotGroup[] {
+  const groups = new Map<string, SnapshotGroup>();
+
+  for (const snapshot of snapshots) {
+    const key = buildSnapshotKey(snapshot);
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+
+    groups.set(key, { row: snapshot, count: 1 });
+  }
+
+  return [...groups.values()];
+}
+
+function getFreshnessCueFromSnapshots(
+  signal: Pick<{ source: string; category: string; title: string; sourceUrl?: string }, "source" | "category" | "title" | "sourceUrl">,
+  snapshots: SignalSnapshotRow[],
+) {
+  const key = buildSnapshotKey({
+    source: signal.source,
+    category: signal.category,
+    title: signal.title,
+    source_url: signal.sourceUrl ?? null,
+  });
+
+  const matches = snapshots.filter((snapshot) => buildSnapshotKey(snapshot) === key);
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const latest = matches[0];
+  return matches.length > 1
+    ? `Seen ${matches.length}x · ${formatRelativeAge(latest.refreshed_at)}`
+    : `Seen · ${formatRelativeAge(latest.refreshed_at)}`;
+}
+
 export default async function Home() {
   const [{ signals, refreshedAt }, recentSnapshots, supabaseStatus] = await Promise.all([
     getSignals(),
     fetchRecentSignalSnapshots(6),
     Promise.resolve(getSupabaseEnvStatus()),
   ]);
+
+  const snapshotGroups = buildSnapshotGroups(recentSnapshots);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -105,25 +184,34 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-4">
-          {signals.map((signal) => (
-            <CardShell key={signal.title} href={signal.sourceUrl}>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="max-w-3xl">
-                  <div className="text-sm text-emerald-300">{signal.category}</div>
-                  <h3 className="mt-1 text-xl font-semibold">{signal.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">{signal.description}</p>
-                </div>
+          {signals.map((signal) => {
+            const freshnessCue = getFreshnessCueFromSnapshots(signal, recentSnapshots);
 
-                <div className="flex shrink-0 flex-wrap gap-3 text-xs text-zinc-300">
-                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.velocity}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.horizon}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.source}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1">Score {signal.score}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1">{signal.updatedAt}</span>
+            return (
+              <CardShell key={signal.title} href={signal.sourceUrl}>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="max-w-3xl">
+                    <div className="text-sm text-emerald-300">{signal.category}</div>
+                    <h3 className="mt-1 text-xl font-semibold">{signal.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-zinc-300">{signal.description}</p>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap gap-3 text-xs text-zinc-300">
+                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.velocity}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.horizon}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.source}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">Score {signal.score}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{signal.updatedAt}</span>
+                    {freshnessCue ? (
+                      <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
+                        {freshnessCue}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            </CardShell>
-          ))}
+              </CardShell>
+            );
+          })}
         </div>
       </section>
 
@@ -151,23 +239,28 @@ export default async function Home() {
             </div>
           ) : (
             <div className="mt-5 grid gap-3">
-              {recentSnapshots.map((snapshot) => (
-                <CardShell key={`${snapshot.refreshed_at}-${snapshot.source}-${snapshot.title}`} href={snapshot.source_url}>
+              {snapshotGroups.map(({ row, count }) => (
+                <CardShell key={`${row.refreshed_at}-${row.source}-${row.title}`} href={row.source_url}>
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="max-w-3xl">
-                      <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">
-                        {snapshot.source}
-                      </div>
-                      <h3 className="mt-1 text-lg font-semibold text-white">{snapshot.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-zinc-300">{snapshot.description ?? "No description provided."}</p>
+                      <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">{row.source}</div>
+                      <h3 className="mt-1 text-lg font-semibold text-white">{row.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-zinc-300">
+                        {row.description ?? "No description provided."}
+                      </p>
                     </div>
 
                     <div className="flex shrink-0 flex-wrap gap-2 text-xs text-zinc-300">
-                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.category}</span>
-                      <span className="rounded-full border border-white/10 px-3 py-1">Score {snapshot.score}</span>
-                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.velocity ?? "—"}</span>
-                      <span className="rounded-full border border-white/10 px-3 py-1">{snapshot.horizon ?? "—"}</span>
-                      <span className="rounded-full border border-white/10 px-3 py-1">{formatRefreshedAt(snapshot.refreshed_at)}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{row.category}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">Score {row.score}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{row.velocity ?? "—"}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{row.horizon ?? "—"}</span>
+                      <span className="rounded-full border border-white/10 px-3 py-1">{formatRefreshedAt(row.refreshed_at)}</span>
+                      {count > 1 ? (
+                        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
+                          Seen {count}x
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </CardShell>

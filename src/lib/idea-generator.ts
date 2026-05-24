@@ -26,6 +26,13 @@ export type GeneratedIdea = {
   launchAngle: string;
 };
 
+export type RefineSeed = {
+  idea: GeneratedIdea;
+  topic?: string;
+  audience?: string;
+  style?: string;
+};
+
 type Theme = {
   label: string;
   noun: string;
@@ -59,7 +66,11 @@ function toTitleCase(value: string) {
     .join(" ");
 }
 
-function extractSubject(value: string, fallback: string) {
+function dedupeStrings(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+export function extractSubject(value: string, fallback: string) {
   const raw = value.split(/[\/\-|:]/).map((part) => part.trim()).filter(Boolean)[0] ?? fallback;
   return toTitleCase(raw.replace(/[^a-zA-Z0-9 ]/g, " ").trim() || fallback);
 }
@@ -278,6 +289,32 @@ function buildIdeaFromTopic(theme: Theme, seed: TopicSeed, suffix: string, focus
   };
 }
 
+function buildRefinedWhyNow(idea: GeneratedIdea) {
+  return `Refined from ${idea.name} to make the positioning tighter and the MVP easier to ship.`;
+}
+
+function buildRefinedMvp(idea: GeneratedIdea, focus: string) {
+  const trimmed = idea.mvp.slice(0, 2);
+  const extras = [`One-screen ${focus} flow`, `Shareable ${focus} summary`];
+
+  return dedupeStrings([...trimmed, ...extras]).slice(0, 3);
+}
+
+function buildRefinedIdea(base: GeneratedIdea, suffix: string, focus: string, targetUser: string, style?: string): GeneratedIdea {
+  const subject = extractSubject(base.name, "Idea");
+  const refinedStyle = style?.trim() ? ` for a ${style.trim()} angle` : "";
+
+  return {
+    name: `${subject} ${suffix}`,
+    pitch: `${subject} refined ${focus} product for ${targetUser}${refinedStyle}.`,
+    targetUser,
+    whyNow: buildRefinedWhyNow(base),
+    mvp: buildRefinedMvp(base, focus),
+    stack: base.stack,
+    launchAngle: base.launchAngle,
+  };
+}
+
 export function generateIdeaVariants(seed: IdeaSeed): GeneratedIdea[] {
   const theme = pickThemeFromSignal(seed);
 
@@ -296,4 +333,52 @@ export function generateTopicIdeaVariants(seed: TopicSeed): GeneratedIdea[] {
     buildIdeaFromTopic(theme, seed, "Pro", "solo SaaS"),
     buildIdeaFromTopic(theme, seed, "Studio", "content engine"),
   ];
+}
+
+export function generateRefinedIdeaVariants(seed: RefineSeed): GeneratedIdea[] {
+  const targetUser = seed.audience?.trim() || seed.idea.targetUser;
+  const style = seed.style?.trim();
+  const subject = extractSubject(seed.topic || seed.idea.name, "Idea");
+
+  return [
+    buildRefinedIdea({ ...seed.idea, name: `${subject} Focus` }, "Focus", "narrow use case", targetUser, style),
+    buildRefinedIdea({ ...seed.idea, name: `${subject} Sprint` }, "Sprint", "weekend sprint", targetUser, style),
+    buildRefinedIdea({ ...seed.idea, name: `${subject} Niche` }, "Niche", "high-signal niche", targetUser, style),
+  ];
+}
+
+export function generateNicheTrendStrip(seed: { topic: string; audience?: string; style?: string }) {
+  const topic = normalize(seed.topic);
+  const audience = normalize(seed.audience ?? "");
+  const style = normalize(seed.style ?? "");
+  const subject = extractSubject(seed.topic, "idea");
+
+  const chips = [
+    `${subject} micro-tools`,
+    `${subject} trend watch`,
+    `${subject} workflow automations`,
+    `${subject} launch brief`,
+  ];
+
+  if (topic.includes("ai") || style.includes("ai")) {
+    chips.push("AI copilots", "prompt-to-MVP", "agent workflows");
+  }
+
+  if (topic.includes("fitness") || audience.includes("coach") || audience.includes("fitness")) {
+    chips.push("training streaks", "coach dashboards", "progress wins");
+  }
+
+  if (topic.includes("creator") || topic.includes("content") || audience.includes("creator")) {
+    chips.push("hook generators", "content queues", "post repurposing");
+  }
+
+  if (topic.includes("trading") || topic.includes("crypto") || audience.includes("trader")) {
+    chips.push("signal alerts", "watchlists", "entry notes");
+  }
+
+  if (style.includes("premium") || style.includes("pro")) {
+    chips.push("premium niche workflows");
+  }
+
+  return dedupeStrings(chips).slice(0, 6);
 }

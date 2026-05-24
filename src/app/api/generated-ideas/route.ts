@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import {
   generateIdeaVariants,
+  generateRefinedIdeaVariants,
   generateTopicIdeaVariants,
   type IdeaSeed,
+  type RefineSeed,
   type TopicSeed,
 } from "@/lib/idea-generator";
 
@@ -60,6 +62,37 @@ function parseTopicSeed(input: unknown): TopicSeed | null {
   };
 }
 
+function parseRefineSeed(input: unknown): RefineSeed | null {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const seed = input as Partial<RefineSeed> & { idea?: unknown };
+  if (!seed.idea || typeof seed.idea !== "object") {
+    return null;
+  }
+
+  const idea = seed.idea as unknown as ReturnType<typeof generateIdeaVariants>[number];
+  if (!isString(idea.name) || !isString(idea.pitch) || !isString(idea.targetUser) || !isString(idea.whyNow) || !Array.isArray(idea.mvp) || !isString(idea.stack) || !isString(idea.launchAngle)) {
+    return null;
+  }
+
+  return {
+    idea: {
+      name: idea.name,
+      pitch: idea.pitch,
+      targetUser: idea.targetUser,
+      whyNow: idea.whyNow,
+      mvp: idea.mvp.filter(isString),
+      stack: idea.stack,
+      launchAngle: idea.launchAngle,
+    },
+    topic: isString(seed.topic) ? seed.topic.trim() : undefined,
+    audience: isString(seed.audience) ? seed.audience.trim() : undefined,
+    style: isString(seed.style) ? seed.style.trim() : undefined,
+  };
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -80,6 +113,15 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true, ideas: generateTopicIdeaVariants(seed) });
+  }
+
+  if (mode === "refine") {
+    const seed = parseRefineSeed(body);
+    if (!seed) {
+      return NextResponse.json({ ok: false, error: "Missing or invalid refine seed." }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, ideas: generateRefinedIdeaVariants(seed) });
   }
 
   const seed = parseSignalSeed(body);

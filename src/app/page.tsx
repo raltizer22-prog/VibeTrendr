@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getSignals, stats } from "@/lib/signals";
 import type { Signal } from "@/lib/types";
 import type { SignalSnapshotRow } from "@/lib/supabase";
+import { generateIdeaVariants } from "@/lib/idea-generator";
 import { fetchRecentSignalSnapshots, getSupabaseEnvStatus } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -171,6 +172,19 @@ export default async function Home() {
   const snapshotGroups = buildSnapshotGroups(recentSnapshots);
   const signalGroups = buildSignalGroups(signals, recentSnapshots);
   const topSignal = signalGroups[0];
+  const generatedIdeas = topSignal
+    ? generateIdeaVariants({
+        title: topSignal.primary.title,
+        description: topSignal.primary.description,
+        category: topSignal.category,
+        source: topSignal.primary.source,
+        score: topSignal.primary.score,
+        velocity: topSignal.primary.velocity,
+        horizon: topSignal.primary.horizon,
+        relatedCount: topSignal.signals.length,
+        freshnessCue: topSignal.freshnessCue,
+      })
+    : [];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -233,6 +247,52 @@ export default async function Home() {
                     ) : null}
                   </div>
                 </div>
+              ) : null}
+
+              {generatedIdeas.length > 0 ? (
+                <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Vibe code generator</div>
+                      <h2 className="mt-1 text-xl font-semibold text-white">Turn this signal into buildable ideas</h2>
+                    </div>
+                    <div className="text-sm text-zinc-400">Built from the current top signal</div>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                    {generatedIdeas.map((idea) => (
+                      <article key={idea.name} className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4">
+                        <div className="text-lg font-semibold text-white">{idea.name}</div>
+                        <p className="mt-2 text-sm leading-6 text-zinc-300">{idea.pitch}</p>
+                        <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                          <div>
+                            <span className="text-zinc-500">Target:</span> {idea.targetUser}
+                          </div>
+                          <div>
+                            <span className="text-zinc-500">Why now:</span> {idea.whyNow}
+                          </div>
+                          <div>
+                            <span className="text-zinc-500">Stack:</span> {idea.stack}
+                          </div>
+                          <div>
+                            <span className="text-zinc-500">Launch angle:</span> {idea.launchAngle}
+                          </div>
+                        </div>
+                        <div className="mt-4 space-y-2">
+                          <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">MVP</div>
+                          <ul className="space-y-1 text-sm text-zinc-300">
+                            {idea.mvp.map((item) => (
+                              <li key={item} className="flex gap-2">
+                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
               ) : null}
             </div>
 

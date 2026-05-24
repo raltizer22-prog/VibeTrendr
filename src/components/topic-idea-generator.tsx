@@ -194,7 +194,6 @@ export function TopicIdeaGenerator() {
   const [loading, setLoading] = useState(false);
   const [refiningName, setRefiningName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [helperText, setHelperText] = useState("Try a niche like fitness, trading, or creator tools.");
   const [hydrated, setHydrated] = useState(false);
   const [lastUsedSeed, setLastUsedSeed] = useState<{ topic: string; audience: string; style: string } | null>(null);
 
@@ -266,11 +265,6 @@ export function TopicIdeaGenerator() {
 
       setIdeas(data.ideas);
       setLastUsedSeed({ topic: topic.trim(), audience: audience.trim(), style: style.trim() });
-      setHelperText(
-        mode === "refine"
-          ? "Refined the current idea into tighter variants."
-          : `Generated for ${topic.trim() || "your topic"}.`,
-      );
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to generate ideas.");
     } finally {
@@ -322,7 +316,6 @@ export function TopicIdeaGenerator() {
 
       setIdeas(data.ideas);
       setLastUsedSeed({ topic: topic.trim(), audience: audience.trim(), style: style.trim() });
-      setHelperText(`Refined ${idea.name} into tighter variants.`);
     } catch (refineError) {
       setError(refineError instanceof Error ? refineError.message : "Failed to refine idea.");
     } finally {
@@ -380,7 +373,6 @@ export function TopicIdeaGenerator() {
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Vibe code helper</div>
           <h2 className="mt-1 text-2xl font-semibold">Turn a topic into build ideas</h2>
-          <p className="mt-1 text-sm text-zinc-400">{helperText}</p>
         </div>
         <div className="text-sm text-zinc-400">Example topic: {DEFAULT_TOPIC}</div>
       </div>

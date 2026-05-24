@@ -370,10 +370,6 @@ export default async function PaidApp() {
       <section id="queue" className="mx-auto max-w-6xl px-6 py-10 sm:px-10 lg:px-12">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-2xl font-semibold">Idea queue</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
-            The live queue is now wired into the generator workspace above, so saved ideas, refinements, and ready-to-build
-            picks persist locally across refreshes.
-          </p>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
               Save generated ideas from the cards above.

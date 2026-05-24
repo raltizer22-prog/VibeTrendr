@@ -3,19 +3,19 @@ import { UnlockAccessButton } from "@/components/unlock-access-button";
 
 export const metadata = {
   title: "Pricing | VibeTrendr",
-  description: "Unlock the paid VibeTrendr dashboard.",
+  description: "Unlock the paid trend intelligence workspace.",
 };
 
 const plans = [
   {
     name: "Preview",
     price: "$0",
-    points: ["Public landing page", "Pricing overview", "Access gate redirect"],
+    points: ["Public landing page", "Product overview", "Access redirect"],
   },
   {
     name: "Paid access",
     price: "$19/mo",
-    points: ["Full /app dashboard", "Live signal board", "Idea generator and queue"],
+    points: ["Full /app workspace", "Live signal board", "Idea generator and queue"],
     featured: true,
   },
 ];
@@ -50,14 +50,14 @@ export default async function PricingPage({
       <section className="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
         <div className="max-w-3xl">
           <div className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">
-            Paywall
+            Access
           </div>
           <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Unlock the paid dashboard.
+            Get the full trend intelligence workspace.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
-            The public site explains the product. The full dashboard lives behind /app and is gated until access is
-            unlocked.
+            The public site shows the value. The full workspace lives behind /app and unlocks the live signals,
+            topic generator, snapshots, and save/refine/regenerate flow.
           </p>
         </div>
 

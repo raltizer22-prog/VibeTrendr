@@ -44,7 +44,7 @@ export default async function Home() {
               Pricing
             </Link>
             <Link className="transition hover:text-white" href={appHref}>
-              {isPaid ? "App" : "View pricing"}
+              App
             </Link>
           </nav>
         </div>

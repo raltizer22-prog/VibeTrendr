@@ -10,6 +10,12 @@ export type IdeaSeed = {
   freshnessCue: string | null;
 };
 
+export type TopicSeed = {
+  topic: string;
+  audience?: string;
+  style?: string;
+};
+
 export type GeneratedIdea = {
   name: string;
   pitch: string;
@@ -53,7 +59,12 @@ function toTitleCase(value: string) {
     .join(" ");
 }
 
-function pickTheme(seed: IdeaSeed): Theme {
+function extractSubject(value: string, fallback: string) {
+  const raw = value.split(/[\/\-|:]/).map((part) => part.trim()).filter(Boolean)[0] ?? fallback;
+  return toTitleCase(raw.replace(/[^a-zA-Z0-9 ]/g, " ").trim() || fallback);
+}
+
+function pickThemeFromSignal(seed: IdeaSeed): Theme {
   const source = normalize(seed.source);
   const category = normalize(seed.category);
   const text = normalize(`${seed.title} ${seed.description}`);
@@ -121,7 +132,86 @@ function pickTheme(seed: IdeaSeed): Theme {
   return DEFAULT_THEME;
 }
 
-function buildWhyNow(seed: IdeaSeed) {
+function pickThemeFromTopic(seed: TopicSeed): Theme {
+  const topic = normalize(seed.topic);
+  const audience = normalize(seed.audience ?? "");
+  const style = normalize(seed.style ?? "");
+
+  if (topic.includes("fitness") || topic.includes("health") || audience.includes("fitness")) {
+    return {
+      label: "fitness",
+      noun: "Fitness",
+      stack: "Next.js, Supabase, Stripe",
+      targetUser: "fitness creators, coaches, and solo founders",
+      launchAngle: "Make it feel like a sharp niche tool, not a generic wellness app.",
+      mvp: [
+        "Workout streak tracking",
+        "Plan generator for a specific goal",
+        "Progress dashboard with shareable wins",
+      ],
+    };
+  }
+
+  if (topic.includes("trading") || topic.includes("crypto") || audience.includes("trader")) {
+    return {
+      label: "trading",
+      noun: "Trade",
+      stack: "Next.js, Supabase, Trading APIs",
+      targetUser: "traders and crypto watchers",
+      launchAngle: "Focus on signal clarity and speed, not a bloated trading suite.",
+      mvp: [
+        "Watchlist with alerts",
+        "Signal summary feed",
+        "Entry/exit note generator",
+      ],
+    };
+  }
+
+  if (topic.includes("creator") || topic.includes("content") || topic.includes("marketing") || audience.includes("creator")) {
+    return {
+      label: "creator",
+      noun: "Create",
+      stack: "Next.js, Supabase, OpenAI",
+      targetUser: "solo creators and growth marketers",
+      launchAngle: "Make it feel like a fast content system that turns ideas into output.",
+      mvp: [
+        "Content idea generator",
+        "Hook and angle builder",
+        "Publishing queue and reminder board",
+      ],
+    };
+  }
+
+  if (topic.includes("ai") || style.includes("ai")) {
+    return {
+      label: "ai",
+      noun: "AI",
+      stack: "Next.js, Supabase, OpenAI",
+      targetUser: "AI builders and product teams",
+      launchAngle: "Turn the topic into a useful build brief instead of vague hype.",
+      mvp: [
+        "Problem → solution generator",
+        "Prompt-to-MVP planner",
+        "Weekly niche opportunity tracker",
+      ],
+    };
+  }
+
+  return {
+    label: topic || "idea",
+    noun: extractSubject(seed.topic, "Idea"),
+    stack: "Next.js, Supabase, Vercel",
+    targetUser: audience || "solo builders",
+    launchAngle: "Make the build narrow, obvious, and shippable fast.",
+    mvp: [
+      `Problem tracker for ${topic || "the niche"}`,
+      `Idea generator for ${topic || "the niche"}`,
+      `Simple queue for the best concepts`,
+    ],
+  };
+}
+
+function buildWhyNowFromSignal(seed: IdeaSeed) {
   const freshness = seed.freshnessCue ? seed.freshnessCue.replace(/^Fresh\s*·\s*/i, "") : null;
   const related = seed.relatedCount > 1 ? `${seed.relatedCount} related signals` : "one high-signal item";
   const freshnessPart = freshness ? `fresh enough to move now (${freshness})` : "already ranking high right now";
@@ -129,41 +219,59 @@ function buildWhyNow(seed: IdeaSeed) {
   return `The signal is ${freshnessPart} and clustered around ${related}.`;
 }
 
+function buildWhyNowFromTopic(seed: TopicSeed) {
+  const topic = seed.topic.trim();
+  return `${topic} is a good build lane because people are already searching for focused tools there and the niche is easy to ship small.`;
+}
+
 function buildPitch(theme: Theme, seed: IdeaSeed, focus: string) {
-  const subject = seed.title.split(/[\/\-|:]/).map((part) => part.trim()).filter(Boolean)[0] ?? theme.noun;
-  const prefix = toTitleCase(subject.replace(/[^a-zA-Z0-9 ]/g, " ").trim() || theme.noun);
+  const subject = extractSubject(seed.title, theme.noun);
 
   if (theme.label === "launch") {
-    return `${prefix} launch companion that turns a hot product into a sharper launch brief, positioning, and MVP scope.`;
+    return `${subject} launch companion that turns a hot product into a sharper launch brief, positioning, and MVP scope.`;
   }
 
   if (theme.label === "community") {
-    return `${prefix} problem scanner that turns community chatter into a clean product brief, target user, and MVP scope.`;
+    return `${subject} problem scanner that turns community chatter into a clean product brief, target user, and MVP scope.`;
   }
 
   if (theme.label === "builder") {
-    return `${prefix} builder tool that turns a trending repo or dev signal into a weekend-sized product people can ship.`;
+    return `${subject} builder tool that turns a trending repo or dev signal into a weekend-sized product people can ship.`;
   }
 
   if (theme.label === "ai") {
-    return `${prefix} copilot that turns an AI signal into a concrete product idea with scope, angle, and launch plan.`;
+    return `${subject} copilot that turns an AI signal into a concrete product idea with scope, angle, and launch plan.`;
   }
 
-  return `${prefix} ${focus} product that turns a live signal into a buildable idea with clear scope and launch angle.`;
+  return `${subject} ${focus} product that turns a live signal into a buildable idea with clear scope and launch angle.`;
 }
 
 function buildName(theme: Theme, seed: IdeaSeed, suffix: string) {
-  const subject = seed.title.split(/[\/\-|:]/).map((part) => part.trim()).filter(Boolean)[0] ?? theme.noun;
-  const cleanSubject = toTitleCase(subject.replace(/[^a-zA-Z0-9 ]/g, " ").trim() || theme.noun);
-  return `${cleanSubject} ${suffix}`;
+  const subject = extractSubject(seed.title, theme.noun);
+  return `${subject} ${suffix}`;
 }
 
-function buildIdea(theme: Theme, seed: IdeaSeed, suffix: string, focus: string): GeneratedIdea {
+function buildIdeaFromSignal(theme: Theme, seed: IdeaSeed, suffix: string, focus: string): GeneratedIdea {
   return {
     name: buildName(theme, seed, suffix),
     pitch: buildPitch(theme, seed, focus),
     targetUser: theme.targetUser,
-    whyNow: buildWhyNow(seed),
+    whyNow: buildWhyNowFromSignal(seed),
+    mvp: [...theme.mvp],
+    stack: theme.stack,
+    launchAngle: theme.launchAngle,
+  };
+}
+
+function buildIdeaFromTopic(theme: Theme, seed: TopicSeed, suffix: string, focus: string): GeneratedIdea {
+  const noun = extractSubject(seed.topic, theme.noun);
+  const audience = seed.audience?.trim() || theme.targetUser;
+
+  return {
+    name: `${noun} ${suffix}`,
+    pitch: `${noun} ${focus} product that helps ${audience} ship a focused build faster.`,
+    targetUser: audience,
+    whyNow: buildWhyNowFromTopic(seed),
     mvp: [...theme.mvp],
     stack: theme.stack,
     launchAngle: theme.launchAngle,
@@ -171,11 +279,21 @@ function buildIdea(theme: Theme, seed: IdeaSeed, suffix: string, focus: string):
 }
 
 export function generateIdeaVariants(seed: IdeaSeed): GeneratedIdea[] {
-  const theme = pickTheme(seed);
+  const theme = pickThemeFromSignal(seed);
 
   return [
-    buildIdea(theme, seed, "MVP", "weekend MVP"),
-    buildIdea(theme, seed, "Pro", "solo SaaS"),
-    buildIdea(theme, seed, "Studio", "content engine"),
+    buildIdeaFromSignal(theme, seed, "MVP", "weekend MVP"),
+    buildIdeaFromSignal(theme, seed, "Pro", "solo SaaS"),
+    buildIdeaFromSignal(theme, seed, "Studio", "content engine"),
+  ];
+}
+
+export function generateTopicIdeaVariants(seed: TopicSeed): GeneratedIdea[] {
+  const theme = pickThemeFromTopic(seed);
+
+  return [
+    buildIdeaFromTopic(theme, seed, "MVP", "weekend MVP"),
+    buildIdeaFromTopic(theme, seed, "Pro", "solo SaaS"),
+    buildIdeaFromTopic(theme, seed, "Studio", "content engine"),
   ];
 }

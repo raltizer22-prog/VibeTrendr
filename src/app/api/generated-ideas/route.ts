@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { generateIdeaVariants, type IdeaSeed } from "@/lib/idea-generator";
+import {
+  generateIdeaVariants,
+  generateTopicIdeaVariants,
+  type IdeaSeed,
+  type TopicSeed,
+} from "@/lib/idea-generator";
 
 function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
-function parseSeed(input: unknown): IdeaSeed | null {
+function parseSignalSeed(input: unknown): IdeaSeed | null {
   if (!input || typeof input !== "object") {
     return null;
   }
@@ -38,6 +43,23 @@ function parseSeed(input: unknown): IdeaSeed | null {
   };
 }
 
+function parseTopicSeed(input: unknown): TopicSeed | null {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const seed = input as Partial<TopicSeed>;
+  if (!isString(seed.topic) || !seed.topic.trim()) {
+    return null;
+  }
+
+  return {
+    topic: seed.topic.trim(),
+    audience: isString(seed.audience) ? seed.audience.trim() : undefined,
+    style: isString(seed.style) ? seed.style.trim() : undefined,
+  };
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -47,7 +69,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const seed = parseSeed(body);
+  const mode = typeof body === "object" && body && isString((body as { mode?: unknown }).mode)
+    ? (body as { mode: string }).mode
+    : "signal";
+
+  if (mode === "topic") {
+    const seed = parseTopicSeed(body);
+    if (!seed) {
+      return NextResponse.json({ ok: false, error: "Missing or invalid topic seed." }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, ideas: generateTopicIdeaVariants(seed) });
+  }
+
+  const seed = parseSignalSeed(body);
   if (!seed) {
     return NextResponse.json({ ok: false, error: "Missing or invalid idea seed." }, { status: 400 });
   }

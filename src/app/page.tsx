@@ -170,6 +170,7 @@ export default async function Home() {
 
   const snapshotGroups = buildSnapshotGroups(recentSnapshots);
   const signalGroups = buildSignalGroups(signals, recentSnapshots);
+  const topSignal = signalGroups[0];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -211,6 +212,28 @@ export default async function Home() {
                 VibeTrendr watches the market, surfaces what’s heating up, and keeps the
                 idea queue moving without turning into another bloated dashboard.
               </p>
+
+              {topSignal ? (
+                <div className="mt-6 rounded-3xl border border-emerald-400/20 bg-zinc-950/45 p-5 shadow-[0_0_0_1px_rgba(16,185,129,0.04)]">
+                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Top signal</div>
+                  <div className="mt-2 text-xl font-semibold text-white">{topSignal.primary.title}</div>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
+                    {topSignal.primary.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-300">
+                    <span className="rounded-full border border-white/10 px-3 py-1">{topSignal.category}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{topSignal.primary.source}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">Score {topSignal.primary.score}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{topSignal.primary.velocity}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1">{topSignal.primary.horizon}</span>
+                    {topSignal.freshnessCue ? (
+                      <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
+                        {topSignal.freshnessCue}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-3 gap-3">

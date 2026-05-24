@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  generateNicheTrendStrip,
-  type GeneratedIdea,
-} from "@/lib/idea-generator";
+import { generateNicheTrendStrip, type GeneratedIdea } from "@/lib/idea-generator";
 
 type TopicIdeaResponse = {
   ok: boolean;
@@ -12,17 +9,21 @@ type TopicIdeaResponse = {
   error?: string;
 };
 
-type SavedIdea = GeneratedIdea & {
+type QueueStatus = "saved" | "refined" | "ready";
+
+type QueueIdea = GeneratedIdea & {
+  id: string;
   savedAt: string;
   topic: string;
   audience: string;
   style: string;
+  status: QueueStatus;
 };
 
 const DEFAULT_TOPIC = "fitness";
 const DEFAULT_AUDIENCE = "solo founders and creators";
 const DEFAULT_STYLE = "buildable";
-const SAVED_IDEAS_KEY = "vibetrendr.saved-ideas.v1";
+const QUEUE_STORAGE_KEY = "vibetrendr.idea-queue.v1";
 
 function normalizeKey(value: string) {
   return value.trim().toLowerCase();
@@ -32,52 +33,117 @@ function ideaKey(idea: GeneratedIdea) {
   return normalizeKey(`${idea.name}|${idea.targetUser}|${idea.pitch}`);
 }
 
-function IdeaCard({
+function getQueueLabel(status: QueueStatus) {
+  if (status === "saved") return "Saved";
+  if (status === "refined") return "Refined";
+  return "Ready";
+}
+
+function queueStatusClassName(status: QueueStatus) {
+  if (status === "ready") {
+    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  }
+
+  if (status === "refined") {
+    return "border-sky-400/30 bg-sky-400/10 text-sky-300";
+  }
+
+  return "border-white/10 bg-white/5 text-zinc-200";
+}
+
+function isQueueIdea(value: unknown): value is QueueIdea {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as QueueIdea).id === "string" &&
+      typeof (value as QueueIdea).name === "string" &&
+      typeof (value as QueueIdea).pitch === "string" &&
+      typeof (value as QueueIdea).targetUser === "string" &&
+      typeof (value as QueueIdea).whyNow === "string" &&
+      Array.isArray((value as QueueIdea).mvp) &&
+      typeof (value as QueueIdea).stack === "string" &&
+      typeof (value as QueueIdea).launchAngle === "string" &&
+      typeof (value as QueueIdea).savedAt === "string" &&
+      typeof (value as QueueIdea).topic === "string" &&
+      typeof (value as QueueIdea).audience === "string" &&
+      typeof (value as QueueIdea).style === "string" &&
+      typeof (value as QueueIdea).status === "string",
+  );
+}
+
+function readQueueFromStorage(): QueueIdea[] {
+  try {
+    const raw = window.localStorage.getItem(QUEUE_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(isQueueIdea).map((item) => ({
+      ...item,
+      status: item.status === "refined" || item.status === "ready" ? item.status : ("saved" as QueueStatus),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function QueueCard({
   idea,
-  saved,
-  refining,
-  onSave,
-  onRefine,
+  onRemove,
+  onUpdateStatus,
 }: {
-  idea: GeneratedIdea;
-  saved: boolean;
-  refining: boolean;
-  onSave: (idea: GeneratedIdea) => void;
-  onRefine: (idea: GeneratedIdea) => void;
+  idea: QueueIdea;
+  onRemove: (idea: QueueIdea) => void;
+  onUpdateStatus: (idea: QueueIdea, status: QueueStatus) => void;
 }) {
   return (
     <article className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4 transition hover:border-white/20">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-lg font-semibold text-white">{idea.name}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="text-lg font-semibold text-white">{idea.name}</div>
+            <span
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] ${queueStatusClassName(
+                idea.status,
+              )}`}
+            >
+              {getQueueLabel(idea.status)}
+            </span>
+          </div>
           <p className="mt-2 text-sm leading-6 text-zinc-300">{idea.pitch}</p>
         </div>
         <button
           type="button"
-          onClick={() => onSave(idea)}
-          className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition ${
-            saved
-              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-              : "border-white/10 bg-white/5 text-zinc-200 hover:border-emerald-400/30 hover:bg-emerald-400/10 hover:text-emerald-300"
-          }`}
+          onClick={() => onRemove(idea)}
+          className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-200"
         >
-          {saved ? "Saved" : "Save"}
+          Remove
         </button>
       </div>
 
-      <div className="mt-4 space-y-3 text-sm text-zinc-300">
+      <div className="mt-4 grid gap-3 text-sm text-zinc-300 sm:grid-cols-2">
         <div>
           <span className="text-zinc-500">Target:</span> {idea.targetUser}
         </div>
         <div>
-          <span className="text-zinc-500">Why now:</span> {idea.whyNow}
+          <span className="text-zinc-500">Topic:</span> {idea.topic || "—"}
         </div>
         <div>
-          <span className="text-zinc-500">Stack:</span> {idea.stack}
+          <span className="text-zinc-500">Audience:</span> {idea.audience || "—"}
         </div>
         <div>
-          <span className="text-zinc-500">Launch angle:</span> {idea.launchAngle}
+          <span className="text-zinc-500">Saved:</span> {new Date(idea.savedAt).toLocaleString()}
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-300">
+        <span className="rounded-full border border-white/10 px-3 py-1">{idea.stack}</span>
+        <span className="rounded-full border border-white/10 px-3 py-1">{idea.launchAngle}</span>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -95,11 +161,24 @@ function IdeaCard({
       <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => onRefine(idea)}
-          disabled={refining}
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-emerald-400/30 hover:bg-emerald-400/10 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={() => onUpdateStatus(idea, "saved")}
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/10"
         >
-          {refining ? "Refining..." : "Refine"}
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={() => onUpdateStatus(idea, "refined")}
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-sky-400/30 hover:bg-sky-400/10 hover:text-sky-200"
+        >
+          Mark refined
+        </button>
+        <button
+          type="button"
+          onClick={() => onUpdateStatus(idea, "ready")}
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-emerald-400/30 hover:bg-emerald-400/10 hover:text-emerald-200"
+        >
+          Mark ready
         </button>
       </div>
     </article>
@@ -111,7 +190,7 @@ export function TopicIdeaGenerator() {
   const [audience, setAudience] = useState(DEFAULT_AUDIENCE);
   const [style, setStyle] = useState(DEFAULT_STYLE);
   const [ideas, setIdeas] = useState<GeneratedIdea[]>([]);
-  const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([]);
+  const [queueItems, setQueueItems] = useState<QueueIdea[]>([]);
   const [loading, setLoading] = useState(false);
   const [refiningName, setRefiningName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -121,18 +200,21 @@ export function TopicIdeaGenerator() {
 
   const hasResults = ideas.length > 0;
   const nicheStrip = useMemo(() => generateNicheTrendStrip({ topic, audience, style }), [topic, audience, style]);
+  const queueStats = useMemo(
+    () =>
+      queueItems.reduce(
+        (acc, item) => {
+          acc[item.status] += 1;
+          return acc;
+        },
+        { saved: 0, refined: 0, ready: 0 },
+      ),
+    [queueItems],
+  );
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SAVED_IDEAS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as SavedIdea[];
-        if (Array.isArray(parsed)) {
-          setSavedIdeas(parsed.filter((item) => item && typeof item.name === "string"));
-        }
-      }
-    } catch {
-      // Ignore malformed localStorage payloads.
+      setQueueItems(readQueueFromStorage());
     } finally {
       setHydrated(true);
     }
@@ -144,11 +226,11 @@ export function TopicIdeaGenerator() {
     }
 
     try {
-      window.localStorage.setItem(SAVED_IDEAS_KEY, JSON.stringify(savedIdeas));
+      window.localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queueItems));
     } catch {
       // Ignore storage quota / private mode issues.
     }
-  }, [hydrated, savedIdeas]);
+  }, [hydrated, queueItems]);
 
   async function requestIdeas(mode: "topic" | "refine") {
     setLoading(true);
@@ -184,7 +266,11 @@ export function TopicIdeaGenerator() {
 
       setIdeas(data.ideas);
       setLastUsedSeed({ topic: topic.trim(), audience: audience.trim(), style: style.trim() });
-      setHelperText(mode === "refine" ? "Refined the current idea into tighter variants." : `Generated for ${topic.trim() || "your topic"}.`);
+      setHelperText(
+        mode === "refine"
+          ? "Refined the current idea into tighter variants."
+          : `Generated for ${topic.trim() || "your topic"}.`,
+      );
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to generate ideas.");
     } finally {
@@ -244,25 +330,48 @@ export function TopicIdeaGenerator() {
     }
   }
 
-  function handleSave(idea: GeneratedIdea) {
-    setSavedIdeas((current) => {
-      const key = ideaKey(idea);
-      const exists = current.some((item) => ideaKey(item) === key);
-      if (exists) {
-        return current.filter((item) => ideaKey(item) !== key);
+  function upsertQueueIdea(idea: GeneratedIdea, status: QueueStatus) {
+    setQueueItems((current) => {
+      const id = ideaKey(idea);
+      const existingIndex = current.findIndex((item) => item.id === id);
+      const nextItem = {
+        ...idea,
+        id,
+        savedAt: existingIndex >= 0 ? current[existingIndex].savedAt : new Date().toISOString(),
+        topic: topic.trim(),
+        audience: audience.trim(),
+        style: style.trim(),
+        status,
+      } satisfies QueueIdea;
+
+      if (existingIndex >= 0) {
+        const next = [...current];
+        next[existingIndex] = nextItem;
+        return next;
       }
 
-      return [
-        {
-          ...idea,
-          savedAt: new Date().toISOString(),
-          topic: topic.trim(),
-          audience: audience.trim(),
-          style: style.trim(),
-        },
-        ...current,
-      ];
+      return [nextItem, ...current];
     });
+  }
+
+  function handleSave(idea: GeneratedIdea) {
+    const existing = queueItems.find((item) => item.id === ideaKey(idea));
+    if (existing) {
+      setQueueItems((current) => current.filter((item) => item.id !== existing.id));
+      return;
+    }
+
+    upsertQueueIdea(idea, "saved");
+  }
+
+  function handleUpdateStatus(idea: QueueIdea, status: QueueStatus) {
+    setQueueItems((current) =>
+      current.map((item) => (item.id === idea.id ? { ...item, status } : item)),
+    );
+  }
+
+  function handleRemoveQueueIdea(idea: QueueIdea) {
+    setQueueItems((current) => current.filter((item) => item.id !== idea.id));
   }
 
   return (
@@ -345,14 +454,66 @@ export function TopicIdeaGenerator() {
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
         {ideas.length > 0
           ? ideas.map((idea) => (
-              <IdeaCard
+              <article
                 key={idea.name}
-                idea={idea}
-                saved={savedIdeas.some((saved) => ideaKey(saved) === ideaKey(idea))}
-                refining={refiningName === idea.name}
-                onSave={handleSave}
-                onRefine={handleRefine}
-              />
+                className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4 transition hover:border-white/20"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-lg font-semibold text-white">{idea.name}</div>
+                    <p className="mt-2 text-sm leading-6 text-zinc-300">{idea.pitch}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSave(idea)}
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      queueItems.some((item) => item.id === ideaKey(idea))
+                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                        : "border-white/10 bg-white/5 text-zinc-200 hover:border-emerald-400/30 hover:bg-emerald-400/10 hover:text-emerald-300"
+                    }`}
+                  >
+                    {queueItems.some((item) => item.id === ideaKey(idea)) ? "Queued" : "Save"}
+                  </button>
+                </div>
+
+                <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                  <div>
+                    <span className="text-zinc-500">Target:</span> {idea.targetUser}
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Why now:</span> {idea.whyNow}
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Stack:</span> {idea.stack}
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Launch angle:</span> {idea.launchAngle}
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">MVP</div>
+                  <ul className="space-y-1 text-sm text-zinc-300">
+                    {idea.mvp.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleRefine(idea)}
+                    disabled={refiningName === idea.name}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-zinc-200 transition hover:border-emerald-400/30 hover:bg-emerald-400/10 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {refiningName === idea.name ? "Refining..." : "Refine"}
+                  </button>
+                </div>
+              </article>
             ))
           : null}
       </div>
@@ -364,40 +525,30 @@ export function TopicIdeaGenerator() {
       ) : null}
 
       <div className="mt-6 rounded-3xl border border-white/10 bg-zinc-950/40 p-5">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Saved ideas</div>
+            <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Idea queue workspace</div>
             <h3 className="mt-1 text-lg font-semibold text-white">Local shortlist</h3>
           </div>
-          <div className="text-sm text-zinc-400">{hydrated ? `${savedIdeas.length} saved` : "Loading..."}</div>
+          <div className="text-sm text-zinc-400">
+            {hydrated ? `${queueItems.length} saved · ${queueStats.refined} refined · ${queueStats.ready} ready` : "Loading..."}
+          </div>
         </div>
 
-        {savedIdeas.length > 0 ? (
+        {queueItems.length > 0 ? (
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {savedIdeas.map((idea) => (
-              <article key={`${ideaKey(idea)}-${idea.savedAt}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-white">{idea.name}</div>
-                    <div className="mt-1 text-xs text-zinc-500">
-                      Saved for {idea.topic || "your topic"} · {idea.savedAt}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSave(idea)}
-                    className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-200 transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-200"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-zinc-300">{idea.pitch}</p>
-              </article>
+            {queueItems.map((idea) => (
+              <QueueCard
+                key={`${idea.id}-${idea.savedAt}`}
+                idea={idea}
+                onRemove={handleRemoveQueueIdea}
+                onUpdateStatus={handleUpdateStatus}
+              />
             ))}
           </div>
         ) : (
           <div className="mt-4 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 px-4 py-3 text-sm text-zinc-300">
-            Save strong ideas here to keep a local idea queue across refreshes.
+            Save strong ideas here to keep a local queue across refreshes.
           </div>
         )}
       </div>

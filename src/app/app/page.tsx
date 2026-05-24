@@ -368,36 +368,22 @@ export default async function PaidApp() {
       </section>
 
       <section id="queue" className="mx-auto max-w-6xl px-6 py-10 sm:px-10 lg:px-12">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h2 className="text-2xl font-semibold">Idea queue</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
-              Signals should turn into buildable ideas. This is where the shortlist lives.
-            </p>
-            <div className="mt-5 space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
-                Build an AI trend brief generator
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
-                Add source scoring and confidence weights
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
-                Save ideas to Supabase later
-              </div>
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h2 className="text-2xl font-semibold">Idea queue</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
+            The live queue is now wired into the generator workspace above, so saved ideas, refinements, and ready-to-build
+            picks persist locally across refreshes.
+          </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+              Save generated ideas from the cards above.
             </div>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6">
-            <h2 className="text-2xl font-semibold">Next move</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-300">
-              Connect real data sources, score them, then let users turn a strong signal into a project idea.
-            </p>
-            <a
-              href="#signals"
-              className="mt-6 inline-flex rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
-            >
-              Review signals
-            </a>
+            <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+              Mark queue items refined or ready.
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-300">
+              Remove items without touching the paid access flow.
+            </div>
           </div>
         </div>
       </section>

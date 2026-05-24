@@ -28,7 +28,8 @@ const features = [
 ];
 
 export default async function Home() {
-  const appHref = (await isPaidUser()) ? "/app" : "/pricing";
+  const isPaid = await isPaidUser();
+  const appHref = isPaid ? "/app" : "/pricing";
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -43,7 +44,7 @@ export default async function Home() {
               Pricing
             </Link>
             <Link className="transition hover:text-white" href={appHref}>
-              App
+              {isPaid ? "App" : "View pricing"}
             </Link>
           </nav>
         </div>

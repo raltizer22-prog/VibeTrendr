@@ -6,23 +6,23 @@ export const metadata = {
 };
 
 const highlights = [
-  "Find the best build angles before they get crowded",
-  "Turn live signals into scoped ideas fast",
+  "See which niches are heating up before they get crowded",
+  "Turn live signals into buildable ideas fast",
   "Keep the paid workspace focused on high-signal work",
 ];
 
 const features = [
   {
-    title: "Public preview",
-    body: "A clean landing page that explains the product without exposing the paid dashboard.",
+    title: "Trend intelligence",
+    body: "Live signals and freshness cues show what’s gaining traction now.",
   },
   {
-    title: "Paid dashboard",
-    body: "The existing dashboard stays behind /app and remains the full product experience.",
+    title: "Idea generation",
+    body: "Turn a niche into scoped, buildable product ideas in minutes.",
   },
   {
-    title: "Simple access gate",
-    body: "A cookie-based gate routes visitors to pricing until access has been unlocked.",
+    title: "Paid access",
+    body: "A lightweight gate keeps the full workspace behind the pricing flow.",
   },
 ];
 
@@ -55,8 +55,8 @@ export default function Home() {
             Know what to build next before the niche gets crowded.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
-            VibeTrendr watches live signals, turns them into ideas, and keeps the paid workspace focused on
-            high-signal work.
+            VibeTrendr watches live signals, turns them into ideas, and helps people decide what’s actually worth
+            building next.
           </p>
 
           <ul className="mt-8 space-y-3 text-sm text-zinc-200">
@@ -79,7 +79,7 @@ export default function Home() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">What’s inside</div>
+          <div className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">Core value</div>
           <div className="mt-4 space-y-4">
             {features.map((feature) => (
               <article key={feature.title} className="rounded-2xl border border-white/10 bg-zinc-950/60 p-4">

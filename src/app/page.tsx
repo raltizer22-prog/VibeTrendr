@@ -2,13 +2,13 @@ import Link from "next/link";
 
 export const metadata = {
   title: "VibeTrendr | Trend discovery for vibe coders",
-  description: "Public landing page for VibeTrendr v2.",
+  description: "Find what to build next with live trend signals and a topic-driven vibe code helper.",
 };
 
 const highlights = [
-  "Scan live signals before they get crowded",
-  "Turn strong trends into buildable ideas",
-  "Keep the paid dashboard focused on what matters",
+  "Find the best build angles before they get crowded",
+  "Turn live signals into scoped ideas fast",
+  "Keep the paid workspace focused on high-signal work",
 ];
 
 const features = [
@@ -49,13 +49,13 @@ export default function Home() {
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-16 sm:px-10 lg:grid-cols-[1.2fr_0.8fr] lg:px-12 lg:py-24">
         <div>
           <div className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-emerald-300">
-            Public landing page
+            Idea engine for vibe coders
           </div>
           <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            Spot trends early, then move into the paid dashboard when you’re ready.
+            Know what to build next before the niche gets crowded.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
-            VibeTrendr watches live signals, turns them into ideas, and keeps the locked app focused on the
+            VibeTrendr watches live signals, turns them into ideas, and keeps the paid workspace focused on
             high-signal work.
           </p>
 
@@ -74,12 +74,6 @@ export default function Home() {
               className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
             >
               View pricing
-            </Link>
-            <Link
-              href="/app"
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-zinc-100 transition hover:border-emerald-400/30 hover:bg-emerald-400/10"
-            >
-              Open app
             </Link>
           </div>
         </div>

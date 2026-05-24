@@ -194,7 +194,7 @@ export default async function PaidApp() {
       <header className="border-b border-white/10 bg-zinc-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-10 lg:px-12">
           <div>
-            <div className="text-lg font-semibold tracking-tight">VibeTrendr v2</div>
+            <div className="text-lg font-semibold tracking-tight">VibeTrendr</div>
             <div className="text-xs text-zinc-400">Paid dashboard</div>
           </div>
           <nav className="flex items-center gap-6 text-sm text-zinc-300">

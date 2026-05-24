@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "VibeTrendr v2",
+  title: "VibeTrendr",
   description: "Trend discovery for vibe coders.",
 };
 
